@@ -51,6 +51,8 @@ begin
             when OP_DEC     => alu_out_tmp <= alu_a_tmp - 1;
             when OP_SHR     => alu_out_tmp <= alu_a_in(WORD_SIZE - 2 downto 0) & '0';
             when OP_SHL     => alu_out_tmp <= '0' & alu_a_in(WORD_SIZE - 2 downto 0);
+            when others     => alu_out_tmp <= (others => '0');
+        end case;
     end process;
 
     alu_a_tmp <= unsigned(alu_a_in, WORD_SIZE + 1);
