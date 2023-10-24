@@ -5,7 +5,7 @@ use work.types.all;
 
 entity alu is
     generic(
-        WORD_SIZE : natural := 8;     
+        WORD_SIZE : natural := 8
     );
     port(
         alu_a_in  : in std_logic_vector(WORD_SIZE - 1 downto 0);
