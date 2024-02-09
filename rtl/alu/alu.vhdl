@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 use work.types.all;
 
@@ -8,12 +9,14 @@ entity alu is
         WORD_SIZE : natural := 8
     );
     port(
+        clk       : in std_logic;
+        rst       : in std_logic;
         alu_a_in  : in std_logic_vector(WORD_SIZE - 1 downto 0);
         alu_b_in  : in std_logic_vector(WORD_SIZE - 1 downto 0);
 
         op_in     : in opcode;
 
-        alu_flags : out std_logic(2 downto 0);
+        alu_flags : out std_logic_vector(2 downto 0);
         alu_r_out : out std_logic_vector(WORD_SIZE - 1 downto 0)
     );
 end entity;
@@ -29,11 +32,11 @@ begin
     process(clk, rst, alu_out_tmp)
     begin
         if (rst = '1') then
-            flag_regs <= "000";
+            flag_regs <= ('0', '0', '0');
         elsif (clk'event and clk='1') then
             flag_regs.N <= alu_out_tmp(WORD_SIZE - 1);
             flag_regs.C <= alu_out_tmp(WORD_SIZE);
-            flag_regs.Z <= not or(alu_out_tmp(WORD_SIZE - 1 downto 0);
+            flag_regs.Z <= not (or(alu_out_tmp(WORD_SIZE - 1 downto 0)));
         end if;
     end process;
 
@@ -49,15 +52,16 @@ begin
             when OP_CMP     => alu_out_tmp <= alu_a_tmp - alu_b_tmp;
             when OP_INC     => alu_out_tmp <= alu_a_tmp + 1;
             when OP_DEC     => alu_out_tmp <= alu_a_tmp - 1;
-            when OP_SHR     => alu_out_tmp <= alu_a_in(WORD_SIZE - 2 downto 0) & '0';
-            when OP_SHL     => alu_out_tmp <= '0' & alu_a_in(WORD_SIZE - 2 downto 0);
+            when OP_SHR     => alu_out_tmp <= unsigned(alu_a_in(WORD_SIZE - 2 downto 0) & '0');
+            when OP_SHL     => alu_out_tmp <= unsigned('0' & alu_a_in(WORD_SIZE - 2 downto 0));
             when others     => alu_out_tmp <= (others => '0');
         end case;
     end process;
 
-    alu_a_tmp <= unsigned(alu_a_in, WORD_SIZE + 1);
-    alu_b_tmp <= unsigned(alu_b_in, WORD_SIZE + 1);
-    alu_flags <= flag_regs;
-    alu_r_out <= alu_out_tmp(WORD_SIZE - 1 downto 0);
+    alu_a_tmp <= unsigned(alu_a_in);
+    alu_b_tmp <= unsigned(alu_b_in);
+    alu_flags <= flag_regs.N & flag_regs.C & flag_regs.Z;
+    -- Might turn into a bug
+    alu_r_out <= std_logic_vector(alu_out_tmp);
 
 end architecture;
